@@ -11,6 +11,8 @@ DEEPSEEK_API_KEY = "sk-5c96f4b3f885469eb9af52bab183d654"
 MCP_CPU_URL = "http://127.0.0.1:10001/mcp"
 MCP_MEM_URL = "http://127.0.0.1:10002/mcp"
 MCP_DISK_URL = "http://127.0.0.1:10003/mcp"
+MCP_KUBECTL_NODE_URL = "http://127.0.0.1:10004/mcp"
+
 llm = ChatOpenAI(
     model = 'deepseek-chat',
     temperature=0.8,
@@ -70,6 +72,10 @@ async def main():
         },
         "mcp_disk": {
             "url": MCP_DISK_URL,
+            "transport": "streamable_http"
+        },
+        "mcp_kubectl_node": {
+            "url": MCP_KUBECTL_NODE_URL,
             "transport": "streamable_http"
         },
     })
