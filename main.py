@@ -5,31 +5,56 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 
+#QWEN_API_KEY = "sk-4220a5ceb5f8427b98e3cc9ff6cddb76"
 DEEPSEEK_API_KEY = "sk-5c96f4b3f885469eb9af52bab183d654"
+
 MCP_CPU_URL = "http://127.0.0.1:10001/mcp"
 MCP_MEM_URL = "http://127.0.0.1:10002/mcp"
+MCP_DISK_URL = "http://127.0.0.1:10003/mcp"
 llm = ChatOpenAI(
     model = 'deepseek-chat',
     temperature=0.8,
     base_url = 'https://api.deepseek.com',
     api_key = DEEPSEEK_API_KEY,
 )
+#llm = ChatOpenAI(
+#    model = 'qwen-plus',
+#    temperature=0.8,
+#    base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+#    api_key = QWEN_API_KEY,
+#)
 
 async def main():
     # 配置系统提示词
     custom_prompt = """
 你是一个运维小助手.
-根据用户提出的问题，结合可以使用的工具，回答问题.
+根据用户提出的问题，尽量使用的工具，回答问题.
 回答的内容的样式如下，其中"返回的结果"保持原始内容，并使用markdown格式：
-<u>**查询的子对象**</u>
+<u>**{查询的子对象1}**</u>
 **返回的结果**
+```
+{原始内容}
+```
 **分析的结论**
+{结论}
 ---
-<u>**查询的子对象**</u>
+<u>**{查询的子对象2}**</u>
 **返回的结果**
+```
+{原始内容}
+```
 **分析的结论**
+{结论}
 ---
 ...
+---
+<u>**{查询的子对象n}**</u>
+**返回的结果**
+```
+{原始内容}
+```
+**分析的结论**
+{结论}
 ---
 **最终总结**
 """
@@ -43,23 +68,27 @@ async def main():
             "url": MCP_MEM_URL,
             "transport": "streamable_http"
         },
+        "mcp_disk": {
+            "url": MCP_DISK_URL,
+            "transport": "streamable_http"
+        },
     })
     # 从这些 MCP servers 拿到 tools 列表
     tools = await client.get_tools()
-    memory = MemorySaver()
+    #memory = MemorySaver()
     # 创建一个 Agent，用这些工具
     agent = create_react_agent(
         model=llm,  
         tools=tools,
-        checkpointer=memory,
+        #checkpointer=memory,
         prompt=custom_prompt
     )
 
     # 用 Agent 做一次调用
-    config = {"configurable": {"thread_id": "2"}}
+    #config = {"configurable": {"thread_id": "2"}}
     response = await agent.ainvoke(
-        {"messages": [{"role": "user", "content": "检查集群的整体情况"}]},
-        config
+        {"messages": [{"role": "user", "content": "检查项目集群的基本资源情况"}]},
+        #config
     )
 
     print(response["messages"][-1].content)

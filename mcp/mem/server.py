@@ -6,7 +6,7 @@ mcp = FastMCP("mcp_mem")
 @mcp.tool()
 def command_free() -> str:
     """
-    用于查询整个集群节点的内存情况
+    用于查询项目集群基本资源的内存情况
     :return: 最终获得的答案
     """
     command_str = "free -m"
