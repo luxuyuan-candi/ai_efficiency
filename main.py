@@ -16,6 +16,15 @@ llm = ChatOpenAI(
 )
 
 async def main():
+    # 配置系统提示词
+    custom_prompt = """
+你是一个运维小助手.
+根据用户提出的问题，结合可以使用的工具，回答问题.
+回答的内容的样式如下，并使用markdown格式：
+###查询的对象###
+###返回的结果###
+###分析的结论###
+"""
     # 配置 MCP servers
     client = MultiServerMCPClient({
         "mcp_cpu": {
@@ -30,7 +39,8 @@ async def main():
     agent = create_react_agent(
         model=llm,  
         tools=tools,
-        checkpointer=memory
+        checkpointer=memory,
+        prompt=custom_prompt
     )
 
     # 用 Agent 做一次调用
