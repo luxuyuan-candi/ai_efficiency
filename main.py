@@ -91,6 +91,38 @@ async def main():
             "url": MCP_KUBECTL_NODE_URL,
             "transport": "streamable_http"
         },
+        "mcp_kubectl_pod": {
+            "url": "http://127.0.0.1:10005/mcp",
+            "transport": "streamable_http"
+        },
+        "mcp_time": {
+            "url": "http://127.0.0.1:10006/mcp",
+            "transport": "streamable_http"
+        },
+        "mcp_kubectl_kafka": {
+            "url": "http://127.0.0.1:10007/mcp",
+            "transport": "streamable_http"
+        },
+        "mcp_kubectl_zookeeper": {
+            "url": "http://127.0.0.1:10008/mcp",
+            "transport": "streamable_http"
+        },
+        "mcp_kubectl_mysql": {
+            "url": "http://127.0.0.1:10009/mcp",
+            "transport": "streamable_http"
+        },
+        "mcp_kubectl_redis": {
+            "url": "http://127.0.0.1:10010/mcp",
+            "transport": "streamable_http"
+        },
+        "mcp_glusterd": {
+            "url": "http://127.0.0.1:10011/mcp",
+            "transport": "streamable_http"
+        },
+        "mcp_kubectl_mongodb": {
+            "url": "http://127.0.0.1:10012/mcp",
+            "transport": "streamable_http"
+        },
     })
     # 从这些 MCP servers 拿到 tools 列表
     tools = await client.get_tools()
