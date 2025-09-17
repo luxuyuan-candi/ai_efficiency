@@ -32,7 +32,7 @@ async def main():
 你是一个运维小助手.
 根据用户提出的问题，尽量使用的工具，回答问题.
 <<内容要求
--"返回的结果"：保持原始内容。
+-"返回的结果"：保持原始内容,即使返回为空，依然要展示。
 -"项目基本情况"：不超过5个字。
 /内容要求>>
 回答的内容的样式如下，并使用markdown格式：
@@ -143,9 +143,9 @@ async def main():
         {"messages": [
             {"role": "user", "content": "项目信息为:"+info_project},
             {"role": "user", "content": "项目业务为:"+case_project},
-            {"role": "user", "content": "检查该项目"}
+            {"role": "user", "content": "检查该项目的所有情况"}
             ]},
-        #config
+        config={"recursion_limit": 50}
     )
 
     print(response["messages"][-1].content)
