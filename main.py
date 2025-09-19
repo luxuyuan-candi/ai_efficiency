@@ -1,153 +1,34 @@
-import asyncio
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langgraph.prebuilt import create_react_agent
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from langgraph.checkpoint.memory import MemorySaver
+import requests
 
-#QWEN_API_KEY = "sk-4220a5ceb5f8427b98e3cc9ff6cddb76"
-DEEPSEEK_API_KEY = "sk-5c96f4b3f885469eb9af52bab183d654"
+def main():
+    # Flask 接口地址，根据实际部署情况修改
+    url = "http://127.0.0.1:5000/analyze"
 
-MCP_CPU_URL = "http://127.0.0.1:10001/mcp"
-MCP_MEM_URL = "http://127.0.0.1:10002/mcp"
-MCP_DISK_URL = "http://127.0.0.1:10003/mcp"
-MCP_KUBECTL_NODE_URL = "http://127.0.0.1:10004/mcp"
+    # 要发送给接口的内容
+    payload = {
+        "content": "检查该项目的所有情况"
+    }
 
-llm = ChatOpenAI(
-    model = 'deepseek-chat',
-    temperature=0.8,
-    base_url = 'https://api.deepseek.com',
-    api_key = DEEPSEEK_API_KEY,
-)
-#llm = ChatOpenAI(
-#    model = 'qwen-plus',
-#    temperature=0.8,
-#    base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-#    api_key = QWEN_API_KEY,
-#)
+    try:
+        # 发送 POST 请求
+        resp = requests.post(url, json=payload, timeout=600)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print(f"请求接口出错: {e}")
+        return
 
-async def main():
-    # 配置系统提示词
-    custom_prompt = """
-你是一个运维小助手.
-根据用户提出的问题，尽量使用的工具，回答问题.
-<<内容要求
--"返回的结果"：保持原始内容,即使返回为空，依然要展示。
--"项目基本情况"：不超过5个字。
-/内容要求>>
-回答的内容的样式如下，并使用markdown格式：
-### 一、项目基本情况
-{项目信息}
-### 二、项目集群状态
-#### {查询的子对象1}
-**返回的结果**
-```
-{原始内容}
-```
-**分析的结论**
-{结论}
+    # 解析返回 JSON
+    data = resp.json()
 
----
-#### {查询的子对象2}
-**返回的结果**
-```
-{原始内容}
-```
-**分析的结论**
-{结论}
+    # 取得 result 字段并把字面 \n 转换为真正换行
+    result = data.get("result", "")
+    #result = result.replace("\\n", "\n")
 
----
-...
+    # 输出到控制台
+    print("\n===== 接口返回结果 =====\n")
+    with open("./result.md", "w") as f:
+        f.write(result)
+    print(result)
 
----
-#### {查询的子对象n}
-**返回的结果**
-```
-{原始内容}
-```
-**分析的结论**
-{结论}
-
----
-#### 最终总结
-### 三、项目业务情况
-{项目业务}
-"""
-    # 配置 MCP servers
-    client = MultiServerMCPClient({
-        "mcp_cpu": {
-            "url": MCP_CPU_URL,
-            "transport": "streamable_http"
-        },
-        "mcp_mem": {
-            "url": MCP_MEM_URL,
-            "transport": "streamable_http"
-        },
-        "mcp_disk": {
-            "url": MCP_DISK_URL,
-            "transport": "streamable_http"
-        },
-        "mcp_kubectl_node": {
-            "url": MCP_KUBECTL_NODE_URL,
-            "transport": "streamable_http"
-        },
-        "mcp_kubectl_pod": {
-            "url": "http://127.0.0.1:10005/mcp",
-            "transport": "streamable_http"
-        },
-        "mcp_time": {
-            "url": "http://127.0.0.1:10006/mcp",
-            "transport": "streamable_http"
-        },
-        "mcp_kubectl_kafka": {
-            "url": "http://127.0.0.1:10007/mcp",
-            "transport": "streamable_http"
-        },
-        "mcp_kubectl_zookeeper": {
-            "url": "http://127.0.0.1:10008/mcp",
-            "transport": "streamable_http"
-        },
-        "mcp_kubectl_mysql": {
-            "url": "http://127.0.0.1:10009/mcp",
-            "transport": "streamable_http"
-        },
-        "mcp_kubectl_redis": {
-            "url": "http://127.0.0.1:10010/mcp",
-            "transport": "streamable_http"
-        },
-        "mcp_glusterd": {
-            "url": "http://127.0.0.1:10011/mcp",
-            "transport": "streamable_http"
-        },
-        "mcp_kubectl_mongodb": {
-            "url": "http://127.0.0.1:10012/mcp",
-            "transport": "streamable_http"
-        },
-    })
-    # 从这些 MCP servers 拿到 tools 列表
-    tools = await client.get_tools()
-    #memory = MemorySaver()
-    # 创建一个 Agent，用这些工具
-    agent = create_react_agent(
-        model=llm,  
-        tools=tools,
-        #checkpointer=memory,
-        prompt=custom_prompt
-    )
-
-    # 用 Agent 做一次调用
-    #config = {"configurable": {"thread_id": "2"}}
-    info_project = "一见视觉平台是一款好的产品，需要查询相关文档"
-    case_project = "项目业务情况良好，需要查询相关数据库"
-    response = await agent.ainvoke(
-        {"messages": [
-            {"role": "user", "content": "项目信息为:"+info_project},
-            {"role": "user", "content": "项目业务为:"+case_project},
-            {"role": "user", "content": "检查该项目的所有情况"}
-            ]},
-        config={"recursion_limit": 50}
-    )
-
-    print(response["messages"][-1].content)
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
