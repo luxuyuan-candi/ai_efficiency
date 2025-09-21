@@ -2,8 +2,10 @@ import re
 import io
 import requests
 from flask import Flask, request, jsonify, send_file, make_response
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 agents_url = {
     "env": "http://127.0.0.1:5000/analyze"
