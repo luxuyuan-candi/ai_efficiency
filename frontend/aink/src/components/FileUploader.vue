@@ -1,6 +1,9 @@
 <template>
-  <div class="container">
+  <div class="page-container">
+    <!-- 左上角 Logo -->
+    <div class="logo">AInk/艾刻</div>
     <!-- 上传区域 -->
+    <div class="container">
     <div
       class="upload-area"
       :class="{ active: dragActive }"
@@ -48,6 +51,7 @@
       {{ file ? '开始上传' : '请选择文件' }}
     </button>
   </div>
+</div>
 </template>
 
 <script setup>
@@ -221,6 +225,25 @@ function uploadFile() {
 .upload-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.page-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+}
+
+.logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #1e90ff;
+  cursor: default;
 }
 </style>
 
